@@ -33,8 +33,7 @@ For pedagogical purposes, you may wish to follow the following pattern:
      1. `SchedulableMonitor`: To monitor the behavior of the synchronization primitives `synchronized`, `wait`, `notify` and `notifyAll`.
      2. `LockFreeMonitor`: To make synchronization primitives throw an exception. Only read/writes are recorded.
    * `import scheduler._`
-   * overrides or defines the methods from class A using customized `exec` statements so that read/writes are monitored.  
+   * overrides or defines the methods from `abstract class A` wrapping the assignments with `exec` so that read/writes are monitored.  The syntax is: `exec(operation)(msgA, Some(res => msgB))` where `operation` is the operation to perform, `msgA` is the message that is logged before the operation, and `msgB` is the message to log after the operation, possibly with the result `res`. You can ignore this second argument.
+   
    Example: `ScheduledSimpleCounter.scala`
 
-
-   

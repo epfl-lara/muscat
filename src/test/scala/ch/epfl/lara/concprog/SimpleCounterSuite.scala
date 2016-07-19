@@ -14,21 +14,29 @@ class SimpleCounterSuite extends FunSuite {
   import instrumentation.TestHelper._
   import instrumentation.TestUtils._
   
-  test("Should work without threads by changing 0 to 1") {
+  test("Should update the value from 0 to 1") {
     val l = new SimpleCounter(0)
     var r = l.compareAndSet(0, 1)
     assert(r)
     assert(l.get == 1)
   }
   
-  test("Should read what one thread inserts") {
-    val l = new SimpleCounter(0)
-    val r = l.compareAndSet(1, 2)
-    assert(r == false)
-    assert(l.get == 0)
+  test("Should not update the value when the test fails") {
+    testSequential[(Boolean, Int)]{ sched => 
+      val l = new SchedulableSimpleCounter(0, sched)
+      val r = l.compareAndSet(1, 2)
+      (
+        (r, l.get),
+        {   res => val (r, v) = res
+          if (r != false) (false, s"Expected compareAndset to return false, got $r")
+          else if(v != 0) (false, s"Expected compareAndSet not to modify the value, but it set it to $v")
+          else (true, "")
+        }
+      )
+    }
   }
   
-  test("should insert in parallel 1, 2 and 3 in the list [0, 4]") {
+  test("should make sure that only one thread considers writing successful if they race.") {
     testManySchedules(2, sched => {
       val sc = new SchedulableSimpleCounter(0, sched)
       ( for (i <- (1 to 2).toList) yield

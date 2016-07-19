@@ -13,11 +13,12 @@ object TestHelper {
   val testTimeout = 120 // the total time out for a test in seconds
   val schedTimeout = 15 // the total time out for execution of a schedule in secs
 
-  def testSequential[T](ops: Scheduler => Any)(assertions: T => (Boolean, String)) = {
+  def testSequential[T](ops: Scheduler => (Any, T => (Boolean, String))) = {
     testManySchedules(1,
       (sched: Scheduler) => {
-        (List(() => ops(sched)),
-         (res: List[Any]) => assertions(res.head.asInstanceOf[T]))
+        lazy val resultAssertions = ops(sched)
+        (List(() => resultAssertions._1),
+         (res: List[Any]) => resultAssertions._2(res.head.asInstanceOf[T]))
       })
   }
   

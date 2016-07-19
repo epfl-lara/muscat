@@ -1,7 +1,5 @@
 package ch.epfl.lara.concprog
 
-import scala.annotation.tailrec
-
 class SimpleCounter(init_value: Int) extends AbstractSimpleCounter {
   value = init_value
 
@@ -13,7 +11,7 @@ class SimpleCounter(init_value: Int) extends AbstractSimpleCounter {
      compareAndSet returns true if the thread successfully replaced the value.
    */
   
-  def compareAndSet(ifValue: Int, newValue: Int) = {
+  def compareAndSet(ifValue: Int, newValue: Int) = synchronized {
     if (ifValue == value) {
       value = newValue
       true

@@ -62,8 +62,8 @@ object TestHelper {
           case RetVal(threadRes) =>
             // check the assertion
             val (success, custom_msg) = assertion(threadRes) 
-            if(!success) {
-              val msg = "The following schedule resulted in wrong results: \n" + custom_msg + "\n" + schedr.getOperationLog().mkString("\n")              
+            if (!success) {
+              val msg = "The following schedule resulted in wrong results: \n" + custom_msg + "\n" + schedr.getOperationLog().mkString("\n")
               throw new java.lang.AssertionError("Assertion failed: "+msg)
             }            
         }

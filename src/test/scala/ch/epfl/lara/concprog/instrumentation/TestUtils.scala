@@ -17,4 +17,22 @@ object TestUtils {
     }
     return false
   }
+  
+  def failsOrTimesOut[T](msgIfNotFailed: String)(action: => T)(ifFailed: java.lang.AssertionError => Unit): Unit= {
+    
+    try {
+      val asyncAction = future {
+        action
+      }
+      Await.result(asyncAction, 2000.millisecond)
+    } catch {
+      case e: java.lang.AssertionError => return ifFailed(e)
+      case e: java.util.concurrent.ExecutionException => 
+        e.getCause match {
+          case e: java.lang.AssertionError => return ifFailed(e)
+          case e => throw e
+        }
+    }
+    assert(false, msgIfNotFailed)
+  }
 }

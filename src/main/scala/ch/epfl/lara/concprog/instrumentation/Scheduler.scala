@@ -222,9 +222,8 @@ class Scheduler(sched: List[Int]) {
       //println(s"$threadId: I'm taking a decision")
       if (threadStates.values.forall { case e: Wait => true case _ => false }) {
         val waiting = threadStates.keys.map(_.toString).mkString(", ")
-        val s = if (threadStates.size > 1) "s" else ""
-        val are = if (threadStates.size > 1) "are" else "is"
-        throw new Exception(s"Deadlock: Thread$s $waiting $are waiting but all others have ended and cannot notify them.")
+        val (s, are, them) = if (threadStates.size > 1) ("s", "are", "them") else ("", "is", "it")
+        throw new Exception(s"Deadlock: Thread$s $waiting $are waiting but all others have ended and cannot notify $them.")
       } else {
         // Threads can be in Wait, Sync, SyncUnique, and VariableReadWrite mode.
         // Let's determine which ones can continue.
@@ -240,10 +239,10 @@ class Scheduler(sched: List[Int]) {
           val are = if (threadStates.size > 1) "are" else "is"
           val whoHasLock = threadStates.toSeq.flatMap { case (id, state) => state.locks.map(lock => (lock, id)) }.toMap
           val reason = threadStates.collect {
-            case (id, state: CanContinueIfAcquiresLock) if !notFree(state.lockToAquire) =>
-              s"Thread $id is waiting on lock ${state.lockToAquire} held by thread ${whoHasLock(state.lockToAquire)}"
+            case (id, state: CanContinueIfAcquiresLock) if notFree(state.lockToAquire) =>
+              s"Thread $id is waiting on a lock held by thread ${whoHasLock(state.lockToAquire)}"
           }.mkString("\n")
-          throw new Exception(s"Deadlock: Thread$s $waiting are interlocked. Indeed:\n$reason")
+          throw new Exception(s"Deadlock: Thread$s $waiting are interlocked. "+( if (reason != "") s"Indeed:\n$reason" else ""))
         } else if (threadsNotBlocked.size == 1) { // Do not consume the schedule if only one thread can execute.
           Some(threadsNotBlocked(0))
         } else {

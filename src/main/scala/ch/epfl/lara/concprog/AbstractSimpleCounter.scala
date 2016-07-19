@@ -10,5 +10,9 @@ abstract class AbstractSimpleCounter extends Monitor {
   
   def value_=(i: Int): Unit = v = i
   def value: Int  = v
+  
+  def compareAndSet(ifValue: Int, newValue: Int): Boolean
+
+  def get: Int
 }
 

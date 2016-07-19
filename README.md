@@ -3,11 +3,11 @@
 
 This library is intented to be used especially for pedagogical purposes.
 
-You can test the default assignment with counters.
+You can test the default assignment with counters:
 
     sbt test
 
-Use it as a library !
+Use it as a library:
 
     sbt package
 
@@ -19,7 +19,7 @@ For pedagogical purposes, you may wish to follow the following pattern:
    You can create any kind of data structure you want.
    You can put this class in a file that the students will work on, and implement some parts.
    Variables to monitor should not be in the class itself but you can say they are available in scope.  
-   Example:[`SimpleCounter.scala!`](src/main/scala/ch/epfl/lara/concprog/SimpleCounter.scala)
+   Example:[`SimpleCounter.scala`](src/main/scala/ch/epfl/lara/concprog/SimpleCounter.scala)
    
 2. Make this `class B extends A` where `abstract class A` is in another file and `extends ch.epfl.lara.concprog.instrumentation.monitors.Monitor`.
    The `abstract class A` should contain overridable methods to manipulate all the variables to monitor.
@@ -46,9 +46,9 @@ You have essentially three ways of writing test contents. The first two are sing
    In the case of errors, the entire test will fail and no
 
 2. Using `class C` with `testSequential` available in [`ch.epfl.lara.concprog.instrumentation.TestHelper._`](src/test/scala/ch/epfl/lara/concprog/instrumentation/TestHelper.scala).
-   It requires a single lambda providing a scheduler to feed `class C` with, which returns a tuple with:
-  1. A result after performing some operations (e.g. on one or many element of class C).
-  2. A lambda which given the result, returns a pair `(Boolean, String)` where the `Boolean` indicates if the test succeeded, and the `String` is displayed if the test failed.
+   It requires a single lambda providing a scheduler to feed elements of `class C` with,
+   which returns a pair `(Boolean, String)` where the `Boolean` indicates if the test succeeded, and the `String` is displayed if the test failed.
+   It is useful to use this construct because it can timeout.
 
 3. Using `class C` with `testManySchedules` available in [`ch.epfl.lara.concprog.instrumentation.TestHelper._`](src/test/scala/ch/epfl/lara/concprog/instrumentation/TestHelper.scala).
   It requires 

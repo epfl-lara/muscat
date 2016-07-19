@@ -25,14 +25,10 @@ class SimpleCounterSuite extends FunSuite {
     testSequential[(Boolean, Int)]{ sched => 
       val l = new SchedulableSimpleCounter(0, sched)
       val r = l.compareAndSet(1, 2)
-      (
-        (r, l.get),
-        {   res => val (r, v) = res
-          if (r != false) (false, s"Expected compareAndset to return false, got $r")
-          else if(v != 0) (false, s"Expected compareAndSet not to modify the value, but it set it to $v")
-          else (true, "")
-        }
-      )
+      val v = l.get
+      if (r != false) (false, s"Expected compareAndset to return false, got $r")
+      else if(v != 0) (false, s"Expected compareAndSet not to modify the value, but it set it to $v")
+      else (true, "")
     }
   }
   

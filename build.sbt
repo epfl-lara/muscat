@@ -1,6 +1,6 @@
 name := "scala-debug-concurrent"
 
-version := "0.5"
+version := "1.0"
 
 scalaVersion := "2.11.8"
 

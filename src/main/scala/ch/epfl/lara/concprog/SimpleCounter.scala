@@ -1,3 +1,4 @@
+/* Copyright 2009-2016 EPFL, Lausanne */
 package ch.epfl.lara.concprog
 
 class SimpleCounter(init_value: Int) extends AbstractSimpleCounter {

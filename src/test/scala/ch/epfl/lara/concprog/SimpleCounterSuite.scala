@@ -1,3 +1,4 @@
+/* Copyright 2009-2016 EPFL, Lausanne */
 package ch.epfl.lara.concprog
 
 import scala.concurrent._

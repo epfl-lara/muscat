@@ -1,3 +1,4 @@
+/* Copyright 2009-2016 EPFL, Lausanne */
 package ch.epfl.lara.concprog
 package instrumentation
 
@@ -22,12 +23,6 @@ object TestHelper {
       })
   }
   
-  // Helpers
-  /*def testManySchedules(op1: => Any): Unit = testManySchedules(List(() => op1))
-  def testManySchedules(op1: => Any, op2: => Any): Unit = testManySchedules(List(() => op1, () => op2))
-  def testManySchedules(op1: => Any, op2: => Any, op3: => Any): Unit = testManySchedules(List(() => op1, () => op2, () => op3))
-  def testManySchedules(op1: => Any, op2: => Any, op3: => Any, op4: => Any): Unit = testManySchedules(List(() => op1, () => op2, () => op3, () => op4))*/
-
   /**
    * @numThreads number of threads
    * @ops operations to be executed, one per thread

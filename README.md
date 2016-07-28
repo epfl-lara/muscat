@@ -35,11 +35,11 @@ For pedagogical purposes, you may wish to follow the following pattern:
    * `import scheduler._`
    * overrides or defines the methods from `abstract class A` wrapping the assignments with `exec` so that read/writes are monitored.  The syntax is: `exec(operation)(msgA, Some(res => msgB))` where `operation` is the operation to perform, `msgA` is the message that is logged before the operation, and `msgB` is the message to log after the operation, possibly with the result `res`. You can ignore this second argument.
    
-   Example: [`ScheduledSimpleCounter.scala`](src/main/scala/ch/epfl/lara/concprog/ScheduledSimpleCounter.scala)
+   Example: [`SchedulableSimpleCounter.scala`](src/main/scala/ch/epfl/lara/concprog/SchedulableSimpleCounter.scala)
 
 ## How to create tests
 
-You may have a look at the file  [`SimpleCounterSuite.scala`](src/main/scala/ch/epfl/lara/concprog/ScheduledSimpleCounter.scala).
+You may have a look at the file  [`SimpleCounterSuite.scala`](src/main/scala/ch/epfl/lara/concprog/SimpleCounterSuite.scala).
 You have essentially three ways of writing test contents. The first two are single-threaded, the third one is multi-threaded.
 
 1. Using `class B`. You can just create an instance of `class B`, run any methods and check assertions.
@@ -76,4 +76,4 @@ It will be prefixed with the thread number in the resulting trace.
 
 ## Can I find more examples on how to use the code ?
 
-Yes please have a look at the file [`SimpleCounterSuite.scala`](src/main/scala/ch/epfl/lara/concprog/ScheduledSimpleCounter.scala) and especially the interlock test.
+Yes please have a look at the file [`SimpleCounterSuite.scala`](src/test/scala/ch/epfl/lara/concprog/SimpleCounterSuite.scala) and especially the interlock test.

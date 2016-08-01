@@ -1,7 +1,7 @@
 # Scala Debug Concurrent
-### A lightweight library for debugging concurrent programs written in Scala.
+### A lightweight library for unit testing concurrent programs written in Scala.
 
-This library is intented to be used especially for pedagogical purposes.
+This library is primarly intented to be used for pedagogical purposes.
 
 You can test the default assignment with counters:
 

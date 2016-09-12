@@ -2,11 +2,11 @@
 
 ### A lightweight library for unit testing concurrent programs written in Scala
 
-The library provides APIs to explore multiple interleaving of shared operations executed by concurrently executing threads. 
-The code for the threads, inputs, and assertions to be tested have to provided by the user much like a unit testing 
-framework. The libray can systematically explore multiple interleaving between selected operations, marked by
+The library provides APIs to explore multiple interleavings of shared operations executed by concurrent threads. 
+The code for the threads, inputs, and assertions to be tested have to be provided by the user much like a unit testing 
+framework. The library can systematically explore multiple interleavings between selected operations, marked by
 users, executed concurrently.
-It can test interleavings even in the presence of synchronization primitives: `synchrnoized`, `Wait`, `notify`, and `notifyAll`.
+It can test interleavings even in the presence of synchronization primitives: `synchronized`, `wait`, `notify`, and `notifyAll`.
 Furthermore, the library can provide an interleaved execution trace for failed test cases, and 
 can detect and report deadlocks that happen at runtime.
 
@@ -43,7 +43,7 @@ Let `class B` be the class that is accessible by multiple threads and needs to t
 For example, `class B` could be a concurrent queue or list.
    
 1. Make `class B` extend (or implement) the trait `ch.epfl.lara.concprog.instrumentation.monitors.Monitor`.
-   Now the `synchornized`, `wait`, `notify`, `notifyAll` methods invoked on instances of `class B` can be instrumented
+   Now the `synchronized`, `wait`, `notify`, `notifyAll` methods invoked on instances of `class B` can be instrumented
    by the library APIs.
    Also, make sure that every atomic operation such as read/write of a shared mutable field used by the methods of the class 
    that may run concurrently is a separate (protected) overridable method of the class.
@@ -58,7 +58,7 @@ For example, `class B` could be a concurrent queue or list.
    * does `import scheduler._` at the start of `class C`.
    * overrides or defines the atomic methods from `class B` wrapping the atomic operations with `exec`.
      The syntax is: `exec(operation)(msgA, Some(res => msgB))` where `operation` is the operation to perform, `msgA` is the message that is logged before the operation, 
-     and `msgB` is the message to log after the operation, which can refer to the result `res` of the computatoin. 
+     and `msgB` is the message to log after the operation, which can refer to the result `res` of the computation. 
    Example: [`SchedulableSimpleCounter.scala`](src/main/scala/ch/epfl/lara/concprog/SchedulableSimpleCounter.scala)
 
    Now the methods of `class C` can be tested by the library on multiple interleavings of the shared operations marked with `exec` as described shortly. 

@@ -29,7 +29,7 @@ To use the library into other projects, do:
 
 and import the jar file generated in the `target` directory.
 Below we present an overview of how to use the library.
-For a more detailed description and technical details see the [whitepaper](https:lara.epfl.ch/~kandhada/MuScaT), which is to appear in 
+For a more detailed description and technical details see the [whitepaper](https://lara.epfl.ch/~kandhada/MuScaT), which is to appear in 
 [Scala 2016](http://conf.researchr.org/track/scala-2016/scala-2016)
 
 ## Creating Testable Classes and Marking Atomic Operations

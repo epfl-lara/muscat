@@ -1,12 +1,12 @@
 # MuScaT: Multithreaded Scala Testing Framework
 
-### A lightweight library for unit testing concurrent programs written in Scala.
+### A lightweight library for unit testing concurrent programs written in Scala
 
 The library provides APIs to explore multiple interleaving of shared operations executed by concurrently executing threads. 
 The code for the threads, inputs, and assertions to be tested have to provided by the user much like a unit testing 
-framework. The libray can systematically explore multiple interleaving between threads based on the configuration 
-parameters such as the context-bound, maximum number of dynamic shared operations, and on.
-It can also handle synchronization primitive: `synchrnoized`, `Wait`, `notify`, and `notifyAll`.
+framework. The libray can systematically explore multiple interleaving between selected operations, marked by the
+user, executed by threads.
+It can test interleavings even in the presence of synchronization primitives: `synchrnoized`, `Wait`, `notify`, and `notifyAll`.
 Furthermore, the library and can provide an interleaved execution trace for failed test cases, and 
 can detect and report deadlocks that happen at runtime.
 
@@ -87,6 +87,16 @@ tests multi-threaded (or concurrent) behavior.
 	where the `Boolean` indicates if the test succeeded, and the `String` is displayed if the test failed.
 	Note that code executed by threads can also manipulate other mutable state if necessary that is not wrapped inside `exec`. 
 	For instance, to track values other than those that are returned. The tool cannot detect bugs resulting because of such mutable states.
+
+## Test Parameters
+
+The exploration of interleavings can be configured using the following parameters found in the file [`ch.epfl.lara.concprog.instrumentation.TestHelper._`](src/test/scala/ch/epfl/lara/concprog/instrumentation/TestHelper.scala)
+
+1. `contextSwitchBound`: Maximum number of context-switches possible in the schedules generated for testing
+2. `readWritesPerThread`: Maximum number of `exec` operations that can be performed by the threads. If more operations are performed by the threads, they would not be tested for multiple interleavings.
+3. `noOfSchedules`: Maximum number of schedules or interleavings to test. The interleavings are uniformly randomly sampled by default.
+4. `testTimeout`: the time out for a unit test in seconds. A test is considered to have failed if it exceeds the time out.
+5. `scheduleTimeout`: the total time out for a single interleaving. The interleaving is considered bad and reported to the user if it exceeds this timeout.
 
 ## How to add a custom line in the concurrent trace?
 

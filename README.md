@@ -1,73 +1,105 @@
-# Scala Debug Concurrent
+# MuScaT: Multithreaded Scala Testing Framework
+
 ### A lightweight library for unit testing concurrent programs written in Scala.
 
-This library is primarly intented to be used for pedagogical purposes.
+The library provides APIs to explore multiple interleaving of shared operations executed by concurrently executing threads. 
+The code for the threads, inputs, and assertions to be tested have to provided by the user much like a unit testing 
+framework. The libray can systematically explore multiple interleaving between threads based on the configuration 
+parameters such as the context-bound, maximum number of dynamic shared operations, and on.
+It can also handle synchronization primitive: `synchrnoized`, `Wait`, `notify`, and `notifyAll`.
+Furthermore, the library and can provide an interleaved execution trace for failed test cases, and 
+can detect and report deadlocks that happen at runtime.
 
-You can test the default assignment with counters:
+This library is primarly intented to be used for testing small pieces of concurrent code e.g. student assignments.
+It was able to explore several tens of thousands of interleavings per second on such programs.
+In principle, the library could be used to test arbitrary Scala programs, provided the configuration parameters are 
+set sufficiently high.
+
+### Illustrative Example 
+
+You find a small illustrative example in the directory: `src/test/.../SimpleCounterSuite.Scala`.
+The example illustrates the how to write unit test using the library API. 
+To run the example and test the library code do:
 
     sbt test
 
-Use it as a library:
+To use the library into other projects, do:
 
     sbt package
 
-## How to create new exercises
+and import the jar file generated in the `target` directory.
+Below we present an overview of how to use the library.
+For a more detailed description and technical details see the [whitepaper](https:lara.epfl.ch/~kandhada/MuScaT), which is to appear in 
+[Scala 2016](http://conf.researchr.org/track/scala-2016/scala-2016)
 
-For pedagogical purposes, you may wish to follow the following pattern:
+## Creating Testable Classes and Marking Atomic Operations
 
-1. Create a `class B` that multiple threads will deal with.
-   You can create any kind of data structure you want.
-   You can put this class in a file that the students will work on, and implement some parts.
-   Variables to monitor should not be in the class itself but you can say they are available in scope.  
-   Example:[`SimpleCounter.scala`](src/main/scala/ch/epfl/lara/concprog/SimpleCounter.scala)
+The library can be used to test programs that modify/access or `synchronize` on objects shared across multiple threads.
+To do so the shared classes must extend a library trait and should wrap its atomic operations within a 
+library construct `exec`.
+Below we illustate it on a simple example. (You may want to follow the below described design pattern as it restricts 
+the overheads of scheduling to the unit tests, isolating them from the normal workflow).
+Let `class B` be the class that is accessible by multiple threads and needs to tested in a concurrent setting.
+For eacmple, `class B` could be a concurrent queue or list.
    
-2. Make this `class B extends A` where `abstract class A` is in another file and `extends ch.epfl.lara.concprog.instrumentation.monitors.Monitor`.
-   The `abstract class A` should contain overridable methods to manipulate all the variables to monitor.
-   It may contain abstract methods that `class B` should implement.  
+1. Make `class B` extend (or implement) the trait `ch.epfl.lara.concprog.instrumentation.monitors.Monitor`.
+   Now the `synchornized`, `wait`, `notify`, `notifyAll` methods invoked on instances of `class B` can be instrumented
+   by the library APIs.
+   Also, make sure that every atomic operation such as read/write of a shared mutable field used by the methods of the class 
+   that may run concurrently is a separate (protected) overridable method of the class.
    Example: [`AbstractSimpleCounter.scala`](src/main/scala/ch/epfl/lara/concprog/AbstractSimpleCounter.scala)
    
-3. Finally, to have a schedulable version, create a `class C` which
-   * `extends class B` (possibly with arguments)
+2. To create a schedulable version of `class B`, create a `class C` which
+   * `extends class B` 
    * accept one extra parameter `scheduler` of type `Scheduler`
    * extends one of the available monitors in the package `ch.epfl.lara.concprog.instrumentation.monitors`
      1. `SchedulableMonitor`: To monitor the behavior of the synchronization primitives `synchronized`, `wait`, `notify` and `notifyAll`.
      2. `SchedulableMonitor with LockFreeMonitor`: To make synchronization primitives throw an exception. Only read/writes are recorded.
-   * `import scheduler._`
-   * overrides or defines the methods from `abstract class A` wrapping the assignments with `exec` so that read/writes are monitored.  The syntax is: `exec(operation)(msgA, Some(res => msgB))` where `operation` is the operation to perform, `msgA` is the message that is logged before the operation, and `msgB` is the message to log after the operation, possibly with the result `res`. You can ignore this second argument.
-   
+   * does `import scheduler._` at the start of `class C`.
+   * overrides or defines the atomic methods from `class B` wrapping the atomic operations with `exec`.
+     The syntax is: `exec(operation)(msgA, Some(res => msgB))` where `operation` is the operation to perform, `msgA` is the message that is logged before the operation, 
+     and `msgB` is the message to log after the operation, which can refer to the result `res` of the computatoin. 
    Example: [`SchedulableSimpleCounter.scala`](src/main/scala/ch/epfl/lara/concprog/SchedulableSimpleCounter.scala)
 
-## How to create tests
+   Now the methods of `class C` can be tested by the library on multiple interleavings of the shared operations marked with `exec` as described shortly. 
+   Note that operations marked with `exec` may not be a strict read/write of a field but should 
+   logically constitute an atomic operation. Otherwise, there may be concurrency bugs that are not tested by the tool.
+
+## Writing Unit Tests
 
 You may have a look at the file  [`SimpleCounterSuite.scala`](src/main/scala/ch/epfl/lara/concprog/SimpleCounterSuite.scala).
-You have essentially three ways of writing test contents. The first two are single-threaded, the third one is multi-threaded.
+The library provides two functions `testSequential`  to test single-threaded (or sequential) behavior, and `testManySchedules` to
+tests multi-threaded (or concurrent) behavior.
 
-1. Using `class B`. You can just create an instance of `class B`, run any methods and check assertions.
-   In the case of errors, the entire test will fail and no
-
-2. Using `class C` with `testSequential` available in [`ch.epfl.lara.concprog.instrumentation.TestHelper._`](src/test/scala/ch/epfl/lara/concprog/instrumentation/TestHelper.scala).
-   It requires a single lambda providing a scheduler to feed elements of `class C` with,
-   which returns a pair `(Boolean, String)` where the `Boolean` indicates if the test succeeded, and the `String` is displayed if the test failed.
-   It is useful to use this construct because it can timeout.
+1. `testSequential` available in [`ch.epfl.lara.concprog.instrumentation.TestHelper._`](src/test/scala/ch/epfl/lara/concprog/instrumentation/TestHelper.scala).
+    takes one argument a lamdba from a `Scheduler` to  the the code that needs to be tested. The code can access any data structure or methods defined in the program.
+    Note that we needs the `Scheduler` argument as the constructor of `class C` requires a scheduler.
+    The code should return a `(Boolean, String)` pair where the `Boolean` indicates if the test succeeded, and the `String` is displayed if the test failed.
+    The operation has a default timeout, which can be adjusted by the user.
 
 3. Using `class C` with `testManySchedules` available in [`ch.epfl.lara.concprog.instrumentation.TestHelper._`](src/test/scala/ch/epfl/lara/concprog/instrumentation/TestHelper.scala).
   It requires 
-  * The number `n` of threads to create a schedule.
-  * A lambda providing a scheduler to feed `class C` with, which returns a tuple with:
-    1. A list of `n` lambdas accepting no argument and performing some operations (e.g. on one or many element of class C).
-    2. A lambda which to the result of the `n` threads (encoded as a `List[Any]`), returns a pair `(Boolean, String)` where the `Boolean` indicates if the test succeeded, and the `String` is displayed if the test failed.
+  * The number `n` of threads to run in parallel.
+  * A lambda from `Scheduler` to:
+    1. A list of `n` lambdas accepting no argument and performing some operations (e.g. one or more instances of class C). 
+	Each lamdba corresponds to the code that would executed by the threads
+    2. A lambda to which  the result of the `n` threads (encoded as a `List[Any]`) would be fed. The lambda should return a pair `(Boolean, String)` 
+	where the `Boolean` indicates if the test succeeded, and the `String` is displayed if the test failed.
+	Note that code executed by threads can also manipulate other mutable state if necessary that is not wrapped inside `exec`. 
+	For instance, to track values other than those that are returned. The tool cannot detect bugs resulting because of such mutable states.
 
 ## How to add a custom line in the concurrent trace?
 
-If you need to debug complex logic code and add more statements, you can do the following:
+If you need to debug code with complex logic and want to add more statements, you can do the following:
 
-1. Make `class B` abstract and add the following to it:
+1. Make `class B` abstract and add the following to it: 
+(You may want to do only for testing, and restore `B` back to its original form)
 ```scala
 def scheduler: Scheduler
 lazy val ss = scheduler
 import ss._
 ```
-2. Make sure `class B` is never instantiated, only `class C` is. You just made the scheduler available to class B.  
+2. Make sure `class B` is never instantiated, only `class C` is. You just made the scheduler passed to `C` available to class B.
 3. Everywhere you need to add a log line, just call `scheduler.log` or even simpler since it is in scope:
 ```scala
 log("Your log line.")
@@ -77,3 +109,8 @@ It will be prefixed with the thread number in the resulting trace.
 ## Can I find more examples on how to use the code ?
 
 Yes please have a look at the file [`SimpleCounterSuite.scala`](src/test/scala/ch/epfl/lara/concprog/SimpleCounterSuite.scala) and especially the interlock test.
+
+### Contacts
+
+Mikael Mayer, Github username: MikaelMayer
+Ravichandhran Madhavan, Github username: ravimad

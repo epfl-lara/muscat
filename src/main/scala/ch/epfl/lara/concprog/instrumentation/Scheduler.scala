@@ -3,7 +3,7 @@ package ch.epfl.lara.concprog.instrumentation
 
 import java.util.concurrent._;
 import scala.concurrent.duration._
-import scala.collection.mutable._
+import scala.collection.mutable.{Seq => _, _}
 import Stats._
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -103,7 +103,7 @@ class Scheduler(sched: List[Int]) {
       case Start      => waitStart()
       case End        => removeFromSchedule(tid)
       case Running(_) =>
-      case _          => waitForTurn // Wait, SyncUnique, VariableReadWrite
+      case _          => waitForTurn // Wait, VariableReadWrite
     }
   }
 
@@ -131,6 +131,11 @@ class Scheduler(sched: List[Int]) {
       threadStates(threadId)
     }
   }
+  
+  def mapThreadState(id: Int)(f: ThreadState => ThreadState) = synchronized {
+    val s = threadStates(id)
+    threadStates(id) = f(s)
+  }
 
   def mapOtherStates(f: ThreadState => ThreadState) = {
     val exception = threadId
@@ -140,9 +145,18 @@ class Scheduler(sched: List[Int]) {
       }
     }
   }
+  
+  def getOtherThreadIdsInWaitingState(lock: AnyRef): List[Int] = {
+    val exception = threadId
+    synchronized {
+      threadStates.toList.collect  {
+        case (k, v@Wait(lockToAquire, locks, expectedResultingLocks)) if k != exception && lockToAquire == lock => k
+      }
+    }
+  }
 
   def log(str: String) = {
-    if((realToFakeThreadId contains Thread.currentThread().getId())) {
+    if ((realToFakeThreadId contains Thread.currentThread().getId())) {
       val space = (" " * ((threadId - 1) * 2)) 
       val s = space + threadId + ":" + "\n".r.replaceAllIn(str, "\n" + space + "  ")
       opLog += s
@@ -195,14 +209,6 @@ class Scheduler(sched: List[Int]) {
         canContinue = None
         state match {
           case Sync(lockToAquire, locks, expectedResultingLocks) => updateThreadState(Running(expectedResultingLocks))
-          case SyncUnique(lockToAquire, locks, expectedResultingLocks) =>
-            mapOtherStates {
-              _ match {
-                case SyncUnique(lockToAquire2, locks2, expectedResultingLocks) if lockToAquire2 == lockToAquire => Wait(lockToAquire2, locks2, expectedResultingLocks)
-                case e => e
-              }
-            }
-            updateThreadState(Running(expectedResultingLocks))
           case VariableReadWrite(locks) => updateThreadState(Running(locks))
         }
         true
@@ -225,7 +231,7 @@ class Scheduler(sched: List[Int]) {
         val (s, are, them) = if (threadStates.size > 1) ("s", "are", "them") else ("", "is", "it")
         throw new Exception(s"Deadlock: Thread$s $waiting $are waiting but all others have ended and cannot notify $them.")
       } else {
-        // Threads can be in Wait, Sync, SyncUnique, and VariableReadWrite mode.
+        // Threads can be in Wait, Sync, and VariableReadWrite mode.
         // Let's determine which ones can continue.
         val notFree = threadStates.collect { case (id, state) => state.locks }.flatten.toSet
         val threadsNotBlocked = threadStates.toSeq.filter {
@@ -246,26 +252,35 @@ class Scheduler(sched: List[Int]) {
         } else if (threadsNotBlocked.size == 1) { // Do not consume the schedule if only one thread can execute.
           Some(threadsNotBlocked(0))
         } else {
-          val next = schedule.indexWhere(t => threadsNotBlocked.exists { case (id, state) => id == t })
-          if (next != -1) {
-            //println(s"$threadId: schedule is $schedule, next chosen is ${schedule(next)}")
-            val chosenOne = schedule(next) // TODO: Make schedule a mutable list.
-            schedule = schedule.take(next) ++ schedule.drop(next + 1)
-            Some((chosenOne, threadStates(chosenOne)))
-          } else {
-            threadPreference = (threadPreference + 1) % threadsNotBlocked.size
-            val chosenOne = threadsNotBlocked(threadPreference) // Maybe another strategy
-            Some(chosenOne)
-            //threadsNotBlocked.indexOf(threadId) >= 0
-            /*
-            val tnb = threadsNotBlocked.map(_._1).mkString(",")
-            val s = if (schedule.isEmpty) "empty" else schedule.mkString(",")
-            val only = if (schedule.isEmpty) "" else " only"
-            throw new Exception(s"The schedule is $s but$only threads ${tnb} can continue")*/
-          }
+          Some(nextThreadAccordingToSchedule(threadsNotBlocked.map(_._1)))
         }
       }
     } else canContinue
+  }
+  
+  /**
+   * Given a list of possibilites of thread ids,
+   * picks the first id in the schedule that belongs to possibilities,
+   * removes it from the schedule and returns it
+   * nalong with the corresponding thread state.
+   * If the schedule does not have any of the given possibilities,
+   * returns an elements from the possibilities with its thread state,
+   * such that successive calls using the same arguments
+   * will rotate long possibilities.
+   * @param possibilities A non-empty list of thread ids from which to choose.
+   */
+  def nextThreadAccordingToSchedule(possibilities: Seq[Int]): (Int, ThreadState) = {
+    val next = schedule.indexWhere(t => possibilities.exists { (id) => id == t })
+    val chosenOne = if (next != -1) {
+      //println(s"$threadId: schedule is $schedule, next chosen is ${schedule(next)}")
+      val chosenOne = schedule(next)
+      schedule = schedule.take(next) ++ schedule.drop(next + 1) // Side effect
+      chosenOne
+    } else {
+      threadPreference = (threadPreference + 1) % possibilities.size
+      possibilities(threadPreference) // Maybe another strategy ?
+    }
+    (chosenOne, threadStates(chosenOne))
   }
 
   /**

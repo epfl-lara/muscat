@@ -28,20 +28,24 @@ trait SchedulableMonitor extends Monitor {
       throw e
     }
   }
-  override def notifyDefault() = {
-    scheduler mapOtherStates {
-      state => state match {
-        case Wait(lockToAquire, locks, expectedResultingLocks) if lockToAquire == this => SyncUnique(lockToAquire, locks, expectedResultingLocks)
+  override def notifyDefault() =  {
+    val candidates = scheduler.getOtherThreadIdsInWaitingState(this)
+    if (!candidates.isEmpty) {
+      val toAwake = scheduler.nextThreadAccordingToSchedule(candidates)
+      scheduler.mapThreadState(toAwake._1){
+        case Wait(lockToAquire, locks, expectedResultingLocks) => 
+          Sync(lockToAquire, locks, expectedResultingLocks)
         case e => e
       }
+      scheduler.log("notify thread #" + toAwake._1)
+    } else {
+      scheduler.log("notify nobody")
     }
-    scheduler.log("notify")
   }
   override def notifyAllDefault() = {
     scheduler mapOtherStates {
       state => state match {
         case Wait(lockToAquire, locks, expectedResultingLocks) if lockToAquire == this => Sync(lockToAquire, locks, expectedResultingLocks)
-        case SyncUnique(lockToAquire, locks, expectedResultingLocks) if lockToAquire == this => Sync(lockToAquire, locks, expectedResultingLocks)
         case e => e
       }
     }

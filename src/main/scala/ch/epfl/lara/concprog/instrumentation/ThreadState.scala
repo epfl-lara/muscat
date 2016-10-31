@@ -10,7 +10,6 @@ trait CanContinueIfAcquiresLock extends ThreadState {
 case object Start extends ThreadState { def locks: Seq[AnyRef] = Seq.empty }
 case object End extends ThreadState { def locks: Seq[AnyRef] = Seq.empty }
 case class Wait(lockToAquire: AnyRef, locks: Seq[AnyRef], expectedResultingLocks: Seq[AnyRef]) extends ThreadState
-case class SyncUnique(lockToAquire: AnyRef, locks: Seq[AnyRef], expectedResultingLocks: Seq[AnyRef]) extends ThreadState with CanContinueIfAcquiresLock
 case class Sync(lockToAquire: AnyRef, locks: Seq[AnyRef], expectedResultingLocks: Seq[AnyRef]) extends ThreadState with CanContinueIfAcquiresLock
 case class Running(locks: Seq[AnyRef]) extends ThreadState
 case class VariableReadWrite(locks: Seq[AnyRef]) extends ThreadState

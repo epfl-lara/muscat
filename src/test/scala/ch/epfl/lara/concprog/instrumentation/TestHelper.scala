@@ -50,7 +50,7 @@ object TestHelper {
           throw new IllegalStateException(s"Number of threads: $numThreads, do not match operations of threads: $threadOps")
         timed { schedr.runInParallel(schedTimeout * 1000, threadOps) } { t => timeout -= t } match {
           case Timeout(msg) =>                       
-            throw new java.lang.AssertionError("assertion failed\n"+"The schedule took too long to complete. A possible deadlock! \n"+msg)
+            throw new java.lang.AssertionError("assertion failed\n"+"The schedule took too long to complete. A possible deadlock! \nSchedule: "+schedule.mkString(",")+"\n"+msg)
           case Except(msg, stkTrace) =>            
             val traceStr = "Thread Stack trace: \n"+stkTrace.map(" at "+_.toString).mkString("\n")
             throw new java.lang.AssertionError("assertion failed\n"+msg+"\n"+traceStr)

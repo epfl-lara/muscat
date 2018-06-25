@@ -67,7 +67,7 @@ For example, `class B` could be a concurrent queue or list.
 
 ## Writing Unit Tests
 
-You may have a look at the file  [`SimpleCounterSuite.scala`](src/main/scala/ch/epfl/lara/concprog/SimpleCounterSuite.scala).
+You may have a look at the file  [`SimpleCounterSuite.scala`](src/test/scala/ch/epfl/lara/concprog/SimpleCounterSuite.scala).
 The library provides two functions `testSequential`  to test single-threaded (or sequential) behavior, and `testManySchedules` to
 test multi-threaded (or concurrent) behavior.
 

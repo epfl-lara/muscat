@@ -98,7 +98,7 @@ class SimpleCounterSuite extends FunSuite {
     )
   }
   
-  // An implementation of the Simple counter that uses `synchronized` is supposed to be lock-free.
+  // An implementation of the Simple counter that uses `synchronized` but is supposed to be lock-free.
   class SimpleCounterLockFreeWrong(init_value: Int) extends AbstractSimpleCounter {
     value = init_value
 

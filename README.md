@@ -121,5 +121,5 @@ Also, the [whitepaper](https://lara.epfl.ch/~kandhada/MuScaT) illustrates the sy
 
 Please feel free to contact us if you are intersted in using the library and need some help in getting started.
 
-1. Ravichandhran Madhavan, Github username: ravimad
+1. Ravichandhran Madhavan, Github username: ravimad, [kmrc87 at gmail dot com]
 2. Mikael Mayer, Github username: MikaelMayer

@@ -9,7 +9,7 @@ import Stats._
 
 object TestHelper {
   val noOfSchedules = 10000 // set this to 100k during deployment
-  val readWritesPerThread = 20 // maximum number of read/writes possible in one thread
+  val readWritesPerThread = 20 // maximum number of read/writes possible in one thread (during testing)
   val contextSwitchBound = 10
   val testTimeout = 120 // the total time out for a test in seconds
   val schedTimeout = 15 // the total time out for execution of a schedule in secs

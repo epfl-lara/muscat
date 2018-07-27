@@ -9,8 +9,8 @@ import java.util.concurrent.atomic._
 abstract class AbstractSimpleCounter extends Monitor {
   protected var v: Int = 0
   
-  def value_=(i: Int): Unit = v = i
-  def value: Int  = v
+  def value_=(i: Int): Unit = v = i // An indivisible operation that is overridable
+  def value: Int  = v               // An indivisible operation that is overridable
   
   def compareAndSet(ifValue: Int, newValue: Int): Boolean
 

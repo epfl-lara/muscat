@@ -61,7 +61,7 @@ class SimpleCounterSuite extends FunSuite {
     })
   }
   
-  // Tests that check the library APIs by creation buggy variants of the SimpleCounter.
+  // Tests that check the library APIs by creating buggy variants of the SimpleCounter.
 
   // A wrong implementation of the Simple counter where `synchronized` has been omitted.
   class SimpleCounterWrong(init_value: Int) extends AbstractSimpleCounter {
